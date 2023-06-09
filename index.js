@@ -49,6 +49,13 @@ async function run() {
         res.send(result)
     })
 
+    // instructor related api
+    app.get('/instructors', async(req,res)=>{
+      const query={role:'instructor'}
+      const result=await usersCollection.find(query).toArray();
+      res.send(result)
+    })
+
     // classes related api
     app.get('/classes', async(req,res)=>{
       const email = req.query.email;
@@ -56,6 +63,7 @@ async function run() {
       const result = await classesCollection.find(query).toArray()
       res.send(result)
     })
+
     app.post('/classes',async(req,res)=>{
       const classInfo = req.body;
       const result=await classesCollection.insertOne(classInfo);
