@@ -30,9 +30,19 @@ async function run() {
 
     const usersCollection= client.db('drawingSchool').collection('users');
 
+    app.get('/users',async(req,res)=>{
+      const email = req.query.email
+        const query={email:email}
+        const result=await usersCollection.findOne(query)
+        res.send(result)
+    })
     app.post('/users',async(req,res)=>{
         const user = req.body;
-        console.log(user)
+        const query={email:user.email,name:user.name};
+        const existingUser = await usersCollection.findOne(query)
+        if(existingUser){
+            return res.send({message:'user already register'})
+        }
         const result = await usersCollection.insertOne(user)
         res.send(result)
     })
