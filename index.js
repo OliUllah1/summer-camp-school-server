@@ -29,7 +29,8 @@ async function run() {
     await client.connect();
 
     const usersCollection= client.db('drawingSchool').collection('users');
-    const classesCollection =client.db('drawingSchool').collection('classes')
+    const classesCollection =client.db('drawingSchool').collection('classes');
+    const saveClassesCollection =client.db('drawingSchool').collection('saveClasses');
 
     // user related api
     app.get('/users',async(req,res)=>{
@@ -71,6 +72,18 @@ async function run() {
     app.post('/classes',async(req,res)=>{
       const classInfo = req.body;
       const result=await classesCollection.insertOne(classInfo);
+      res.send(result)
+    })
+
+    // save class related api
+    app.post('/saveclass', async(req,res)=>{
+      const saveClass = req.body;
+      const query ={_id:saveClass._id,email:saveClass.email}
+      const existingClass = await saveClassesCollection.findOne(query)
+      if(existingClass){
+        return res.send({message:'already save the class'})
+      }
+      const result = await saveClassesCollection.insertOne(saveClass)
       res.send(result)
     })
 
