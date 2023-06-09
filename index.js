@@ -50,6 +50,12 @@ async function run() {
     })
 
     // classes related api
+    app.get('/classes', async(req,res)=>{
+      const email = req.query.email;
+      const query={instructorEmail:email}
+      const result = await classesCollection.find(query).toArray()
+      res.send(result)
+    })
     app.post('/classes',async(req,res)=>{
       const classInfo = req.body;
       const result=await classesCollection.insertOne(classInfo);
