@@ -29,7 +29,9 @@ async function run() {
     await client.connect();
 
     const usersCollection= client.db('drawingSchool').collection('users');
+    const classesCollection =client.db('drawingSchool').collection('classes')
 
+    // user related api
     app.get('/users',async(req,res)=>{
       const email = req.query.email
         const query={email:email}
@@ -45,6 +47,13 @@ async function run() {
         }
         const result = await usersCollection.insertOne(user)
         res.send(result)
+    })
+
+    // classes related api
+    app.post('/classes',async(req,res)=>{
+      const classInfo = req.body;
+      const result=await classesCollection.insertOne(classInfo);
+      res.send(result)
     })
 
 
