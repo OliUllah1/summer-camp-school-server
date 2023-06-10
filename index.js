@@ -2,7 +2,7 @@ const express = require('express')
 const cors = require('cors');
 require('dotenv').config()
 const app = express()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 5000
 
 // middle ware
@@ -88,6 +88,13 @@ async function run() {
         return res.send({message:'already save the class'})
       }
       const result = await saveClassesCollection.insertOne(saveClass)
+      res.send(result)
+    })
+    app.delete('/saveclass/:id',async(req,res)=>{
+      const id= req.params.id;
+      const email=req.query.email;
+      const query = { _id: id,email:email };
+      const result = await saveClassesCollection.deleteOne(query)
       res.send(result)
     })
 
