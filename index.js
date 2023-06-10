@@ -56,8 +56,13 @@ async function run() {
     })
 
     // classes related api
-    app.get('/classes', async(req,res)=>{
-      const result= await classesCollection.find().toArray();
+    app.get('/allclasses',async(req,res)=>{
+      const result= await classesCollection.find().toArray()
+      res.send(result)
+    })
+    app.get('/approvedclasses', async(req,res)=>{
+      const query={status:'approved'}
+      const result= await classesCollection.find(query).toArray();
       res.send(result)
     })
     app.get('/classes/:id',async(req,res)=>{
@@ -76,6 +81,17 @@ async function run() {
     app.post('/classes',async(req,res)=>{
       const classInfo = req.body;
       const result=await classesCollection.insertOne(classInfo);
+      res.send(result)
+    })
+    app.patch('/classes/:id',async(req,res)=>{
+      const id=req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          status: 'approved'
+        },
+      };
+      const result= await classesCollection.updateOne(filter,updateDoc)
       res.send(result)
     })
 
