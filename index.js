@@ -76,6 +76,10 @@ async function run() {
     })
 
     // save class related api
+    app.get('/saveclass',async(req,res)=>{
+      const result = await saveClassesCollection.find().toArray()
+      res.send(result)
+    })
     app.post('/saveclass', async(req,res)=>{
       const saveClass = req.body;
       const query ={_id:saveClass._id,email:saveClass.email}
