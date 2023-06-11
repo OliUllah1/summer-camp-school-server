@@ -112,6 +112,20 @@ async function run() {
       const result=await classesCollection.insertOne(classInfo);
       res.send(result)
     })
+    app.put('/classes/:id',async(req,res)=>{
+      const id =req.params.id;
+      const updateData=req.body;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          className: updateData.className,
+          availableSets:updateData.availableSets,
+          price:updateData.price
+        },
+      };
+      const result = await classesCollection.updateOne(filter,updateDoc)
+      res.send(result)
+    })
     app.patch('/classes/:id',async(req,res)=>{
       const id=req.params.id;
       const status=req.query.status;
