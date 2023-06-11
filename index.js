@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors');
 require('dotenv').config()
 const app = express()
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const stripe = require("stripe")(process.env.PAYMENT_SECRET_KEY);
 const port = process.env.PORT || 5000
@@ -29,7 +30,14 @@ async function run() {
     const usersCollection= client.db('drawingSchool').collection('users');
     const classesCollection =client.db('drawingSchool').collection('classes');
     const saveClassesCollection =client.db('drawingSchool').collection('saveClasses');
-    const classFeedbackCollection =client.db('drawingSchool').collection('classFeedbacks');
+
+    app.post('/jwt' , (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '6h' })
+
+      res.send({ token })
+    })
+
 
     // user related api
     app.get('/allusers',async(req,res)=>{
@@ -126,6 +134,18 @@ async function run() {
       const result = await classesCollection.updateOne(filter,updateDoc)
       res.send(result)
     })
+    app.patch('/classfeedback/:id',async(req,res)=>{
+      const id =req.params.id;
+      const feedback=req.body;
+      const filter = {_id : new ObjectId(id)}
+      const updateDoc = {
+        $set: {
+          feedback: feedback.feedback
+        },
+      };
+      const result= await classesCollection.updateOne(filter,updateDoc)
+      res.send(result)
+    })
     app.patch('/classes/:id',async(req,res)=>{
       const id=req.params.id;
       const status=req.query.status;
@@ -173,22 +193,6 @@ async function run() {
       const result = await saveClassesCollection.deleteOne(query)
       res.send(result)
     })
-
-
-
-    // class feedback related api
-    app.post('/feedbacks',async(req,res)=>{
-      const feedback=req.body;
-      const query ={_id: feedback._id}
-      const existingFeedback= await classFeedbackCollection.findOne(query)
-      if(existingFeedback){
-        return res.send({message:'you all already send the feedback'})
-      }
-      const result =await classFeedbackCollection.insertOne(feedback);
-      res.send(result)
-    })
-
-
 
 
     // create payment intent
