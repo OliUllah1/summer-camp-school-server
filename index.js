@@ -29,6 +29,7 @@ async function run() {
     const usersCollection= client.db('drawingSchool').collection('users');
     const classesCollection =client.db('drawingSchool').collection('classes');
     const saveClassesCollection =client.db('drawingSchool').collection('saveClasses');
+    const classFeedbackCollection =client.db('drawingSchool').collection('classFeedbacks');
 
     // user related api
     app.get('/users',async(req,res)=>{
@@ -85,7 +86,9 @@ async function run() {
     })
     app.patch('/classes/:id',async(req,res)=>{
       const id=req.params.id;
+      const status=req.query.status;
       const filter = { _id: new ObjectId(id) };
+      if(status === 'approved'){
       const updateDoc = {
         $set: {
           status: 'approved'
@@ -93,6 +96,17 @@ async function run() {
       };
       const result= await classesCollection.updateOne(filter,updateDoc)
       res.send(result)
+      }
+      else{
+        const updateDoc = {
+          $set: {
+            status: 'denied'
+          },
+        };
+        const result= await classesCollection.updateOne(filter,updateDoc)
+        res.send(result)
+      }
+      
     })
 
     // save class related api
@@ -117,6 +131,23 @@ async function run() {
       const result = await saveClassesCollection.deleteOne(query)
       res.send(result)
     })
+
+
+
+    // class feedback related api
+    app.post('/feedbacks',async(req,res)=>{
+      const feedback=req.body;
+      const query ={_id: feedback._id}
+      const existingFeedback= await classFeedbackCollection.findOne(query)
+      if(existingFeedback){
+        return res.send({message:'you all already send the feedback'})
+      }
+      const result =await classFeedbackCollection.insertOne(feedback);
+      res.send(result)
+    })
+
+
+
 
     // create payment intent
     app.post('/create-payment-intent', async (req, res) => {
