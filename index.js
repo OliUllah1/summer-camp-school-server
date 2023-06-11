@@ -32,6 +32,10 @@ async function run() {
     const classFeedbackCollection =client.db('drawingSchool').collection('classFeedbacks');
 
     // user related api
+    app.get('/allusers',async(req,res)=>{
+      const result =await usersCollection.find().toArray()
+      res.send(result)
+    })
     app.get('/users',async(req,res)=>{
       const email = req.query.email
         const query={email:email}
@@ -47,6 +51,30 @@ async function run() {
         }
         const result = await usersCollection.insertOne(user)
         res.send(result)
+    })
+    app.patch('/users/:id',async(req,res)=>{
+      const id = req.params.id;
+      const role=req.query.role;
+      const filter= {_id: new ObjectId(id)}
+      if(role==='admin'){
+        const updateDoc = {
+          $set: {
+            role: 'admin'
+          },
+        };
+        const result = await usersCollection.updateOne(filter,updateDoc)
+        res.send(result)
+      }
+      else{
+        const updateDoc = {
+          $set: {
+            role: 'instructor'
+          },
+        };
+        const result = await usersCollection.updateOne(filter,updateDoc)
+        res.send(result)
+      }
+     
     })
 
     // instructor related api
