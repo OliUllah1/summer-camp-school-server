@@ -243,7 +243,13 @@ async function run() {
 
 
     // payments related api
-    app.post('/payments', async(req,res)=>{
+    app.get('/payments',verifyJWT, async(req,res)=>{
+      const email =req.query.email;
+      const query = {userEmail:email}
+      const result =await paymentsCollection.find(query).toArray()
+      res.send(result)
+    })
+    app.post('/payments', verifyJWT, async(req,res)=>{
       const id = req.query.id;
       const paymentsData =  req.body;
       const query ={_id : id}
