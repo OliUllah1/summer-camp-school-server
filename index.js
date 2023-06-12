@@ -119,6 +119,11 @@ async function run() {
       const result= await classesCollection.find(query).toArray();
       res.send(result)
     })
+    app.get('/popularclasses',async(req,res)=>{
+      const query={status:'approved'}
+      const result=await classesCollection.find(query).sort({"TotalEnrolledStudents":-1}).limit(6).toArray();
+      res.send(result)
+    })
     app.get('/classes/:id',async(req,res)=>{
       const id=req.params.id;
       const query={_id: new ObjectId(id)}
@@ -246,10 +251,10 @@ async function run() {
     app.get('/payments',verifyJWT, async(req,res)=>{
       const email =req.query.email;
       const query = {userEmail:email}
-      const result =await paymentsCollection.find(query).toArray()
+      const result =await paymentsCollection.find(query).sort({"time":1}).toArray()
       res.send(result)
     })
-    app.post('/payments', verifyJWT, async(req,res)=>{
+    app.post('/payments', async(req,res)=>{
       const id = req.query.id;
       const paymentsData =  req.body;
       const query ={_id : id}
