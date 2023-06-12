@@ -50,24 +50,24 @@ async function run() {
 
     app.post('/jwt', (req, res) => {
       const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '6h' })
 
       res.send({ token })
     })
 
 
     // user related api
-    app.get('/allusers',async(req,res)=>{
+    app.get('/allusers',verifyJWT, async(req,res)=>{
       const result =await usersCollection.find().toArray()
       res.send(result)
     })
-    app.get('/users',async(req,res)=>{
+    app.get('/users', async(req,res)=>{
       const email = req.query.email
         const query={email:email}
         const result=await usersCollection.findOne(query)
         res.send(result)
     })
-    app.post('/users',async(req,res)=>{
+    app.post('/users', async(req,res)=>{
         const user = req.body;
         const query={email:user.email,name:user.name};
         const existingUser = await usersCollection.findOne(query)
@@ -77,7 +77,7 @@ async function run() {
         const result = await usersCollection.insertOne(user)
         res.send(result)
     })
-    app.patch('/users/:id',async(req,res)=>{
+    app.patch('/users/:id',verifyJWT, async(req,res)=>{
       const id = req.params.id;
       const role=req.query.role;
       const filter= {_id: new ObjectId(id)}
@@ -108,6 +108,7 @@ async function run() {
       const result=await usersCollection.find(query).toArray();
       res.send(result)
     })
+
     app.get('/popularinstructors', async(req,res)=>{
       const query={role:'instructor'}
       const result=await usersCollection.find(query).limit(6).toArray();
@@ -124,12 +125,17 @@ async function run() {
       const result= await classesCollection.find(query).toArray();
       res.send(result)
     })
+    app.get('/upcomingclasses',async(req,res)=>{
+      const query={status:'denied'}
+      const result=await classesCollection.find(query).toArray()
+      res.send(result)
+    })
     app.get('/popularclasses',async(req,res)=>{
       const query={status:'approved'}
       const result=await classesCollection.find(query).sort({"TotalEnrolledStudents":-1}).limit(6).toArray();
       res.send(result)
     })
-    app.get('/classes/:id',async(req,res)=>{
+    app.get('/classes/:id', async(req,res)=>{
       const id=req.params.id;
       const query={_id: new ObjectId(id)}
       const result=await classesCollection.findOne(query)
@@ -150,12 +156,12 @@ async function run() {
       res.send(result)
     })
 
-    app.post('/classes',async(req,res)=>{
+    app.post('/classes',verifyJWT, async(req,res)=>{
       const classInfo = req.body;
       const result=await classesCollection.insertOne(classInfo);
       res.send(result)
     })
-    app.put('/classes/:id',async(req,res)=>{
+    app.put('/classes/:id',verifyJWT, async(req,res)=>{
       const id =req.params.id;
       const updateData=req.body;
       const filter = { _id: new ObjectId(id) };
@@ -169,7 +175,7 @@ async function run() {
       const result = await classesCollection.updateOne(filter,updateDoc)
       res.send(result)
     })
-    app.patch('/classfeedback/:id',async(req,res)=>{
+    app.patch('/classfeedback/:id', verifyJWT, async(req,res)=>{
       const id =req.params.id;
       const feedback=req.body;
       const filter = {_id : new ObjectId(id)}
@@ -181,7 +187,7 @@ async function run() {
       const result= await classesCollection.updateOne(filter,updateDoc)
       res.send(result)
     })
-    app.patch('/classes/:id',async(req,res)=>{
+    app.patch('/classes/:id',verifyJWT, async(req,res)=>{
       const id=req.params.id;
       const status=req.query.status;
       const filter = { _id: new ObjectId(id) };
@@ -207,11 +213,11 @@ async function run() {
     })
 
     // save class related api
-    app.get('/saveclass',async(req,res)=>{
+    app.get('/saveclass',verifyJWT, async(req,res)=>{
       const result = await saveClassesCollection.find().toArray()
       res.send(result)
     })
-    app.get('/saveclass/:id',async(req,res)=>{
+    app.get('/saveclass/:id',verifyJWT, async(req,res)=>{
       const id=req.params.id;
       const query = { _id : id}
       const result= await saveClassesCollection.findOne(query)
@@ -227,7 +233,7 @@ async function run() {
       const result = await saveClassesCollection.insertOne(saveClass)
       res.send(result)
     })
-    app.delete('/saveclass/:id',async(req,res)=>{
+    app.delete('/saveclass/:id',verifyJWT, async(req,res)=>{
       const id= req.params.id;
       const email=req.query.email;
       const query = { _id: id,email:email };
@@ -237,7 +243,7 @@ async function run() {
 
 
     // create payment intent
-    app.post('/create-payment-intent', async (req, res) => {
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
       const { price } = req.body;
       const amount = parseInt(price * 100);
       const paymentIntent = await stripe.paymentIntents.create({
@@ -256,10 +262,10 @@ async function run() {
     app.get('/payments',verifyJWT, async(req,res)=>{
       const email =req.query.email;
       const query = {userEmail:email}
-      const result =await paymentsCollection.find(query).sort({"time":1}).toArray()
+      const result =await paymentsCollection.find(query).sort({"time":-1}).toArray()
       res.send(result)
     })
-    app.post('/payments', async(req,res)=>{
+    app.post('/payments',verifyJWT, async(req,res)=>{
       const id = req.query.id;
       const paymentsData =  req.body;
       const query ={_id : id}
@@ -286,8 +292,6 @@ async function run() {
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
   } finally {
-    // Ensures that the client will close when you finish/error
-    // await client.close();
   }
 }
 run().catch(console.dir);
